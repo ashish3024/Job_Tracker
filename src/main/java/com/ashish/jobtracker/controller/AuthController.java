@@ -1,4 +1,4 @@
-package com.ashish.jobtracker.controller.auth;
+package com.ashish.jobtracker.controller;
 
 import com.ashish.jobtracker.dto.request.LoginRequest;
 import com.ashish.jobtracker.dto.request.RegisterRequest;
@@ -24,7 +24,7 @@ public class AuthController {
     @PostMapping("/login")
     public LoginResponse login(@RequestBody LoginRequest request) {
 
-      return authService.login(request);
+        return authService.login(request);
     }
     @PostMapping("/register")
     public RegisterResponse register(@RequestBody RegisterRequest request) {
