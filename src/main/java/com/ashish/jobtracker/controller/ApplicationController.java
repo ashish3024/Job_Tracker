@@ -1,6 +1,7 @@
 package com.ashish.jobtracker.controller;
 
 import com.ashish.jobtracker.dto.request.JobApplicationRequest;
+import com.ashish.jobtracker.dto.request.StatusUpdateRequest;
 import com.ashish.jobtracker.dto.response.JobApplicationResponse;
 import com.ashish.jobtracker.entity.constant.ApplicationStatus;
 import com.ashish.jobtracker.service.ApplicationService;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -61,4 +63,12 @@ public class ApplicationController {
         applicationService.deleteApplication(id);
         return ResponseEntity.noContent().build();
     }
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<JobApplicationResponse> updateStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody StatusUpdateRequest request) {
+        return ResponseEntity.ok(applicationService.updateStatus(id, request));
+    }
+
 }

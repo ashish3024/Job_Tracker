@@ -1,6 +1,7 @@
 package com.ashish.jobtracker.service.impl;
 
 import com.ashish.jobtracker.dto.request.JobApplicationRequest;
+import com.ashish.jobtracker.dto.request.StatusUpdateRequest;
 import com.ashish.jobtracker.dto.response.JobApplicationResponse;
 import com.ashish.jobtracker.entity.Company;
 import com.ashish.jobtracker.entity.JobApplication;
@@ -18,7 +19,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import org.springframework.data.domain.Pageable;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -85,6 +85,14 @@ public class ApplicationServiceImpl implements ApplicationService {
     public void deleteApplication(Long id) {
         JobApplication application = findOwnedApplication(id);
         jobApplicationRepository.delete(application);
+    }
+
+    @Override
+    public JobApplicationResponse updateStatus(Long id, StatusUpdateRequest request) {
+        JobApplication application = jobApplicationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Application not found with id: " + id));
+        application.setStatus(request.getStatus());
+        return JobApplicationMapper.toJobApplicationResponse(jobApplicationRepository.save(application));
     }
 
     private JobApplication findOwnedApplication(Long id) {
