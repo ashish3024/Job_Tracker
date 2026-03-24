@@ -9,10 +9,12 @@ import com.ashish.jobtracker.repository.InterviewRoundRepository;
 import com.ashish.jobtracker.repository.JobApplicationRepository;
 import com.ashish.jobtracker.service.InterviewRoundService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class InterviewRoundServiceImpl implements InterviewRoundService {
@@ -22,6 +24,7 @@ public class InterviewRoundServiceImpl implements InterviewRoundService {
 
     @Override
     public InterviewRoundResponse createRound(InterviewRoundRequest request) {
+
         JobApplication application = jobApplicationRepository.findById(request.getApplicationId())
                 .orElseThrow(() -> new RuntimeException("Application not found with id: "
                         + request.getApplicationId()));
@@ -72,8 +75,10 @@ public class InterviewRoundServiceImpl implements InterviewRoundService {
 
     @Override
     public void deleteRound(Long id) {
+        log.info("Delete interview round with id: {}", id);
         InterviewRound round = interviewRoundRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Interview round not found with id: " + id));
         interviewRoundRepository.delete(round);
+        log.info("Deleted interview round with id: {}", id);
     }
 }

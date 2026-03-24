@@ -15,12 +15,14 @@ import com.ashish.jobtracker.repository.JobApplicationRepository;
 import com.ashish.jobtracker.repository.UserRepository;
 import com.ashish.jobtracker.service.ApplicationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ApplicationServiceImpl implements ApplicationService {
@@ -33,7 +35,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public JobApplicationResponse createApplication(JobApplicationRequest request) {
         User currentUser = getCurrentUser();
-
+        log.info("User {} creating application for companyId: {}", currentUser.getEmail(), request.getCompanyId());
         Company company = companyRepository.findById(request.getCompanyId())
                 .orElseThrow(() -> new RuntimeException("Company not found with id: " + request.getCompanyId()));
 
@@ -46,6 +48,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         application.setStatus(ApplicationStatus.APPLIED);
 
         JobApplication saved = jobApplicationRepository.save(application);
+        log.info("Application created with id: {}", saved.getId(),currentUser.getEmail());
         return JobApplicationMapper.toJobApplicationResponse(saved);
     }
 
@@ -84,18 +87,23 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     public void deleteApplication(Long id) {
+        log.info("Deleting application with id: {}", id);
         JobApplication application = findOwnedApplication(id);
         jobApplicationRepository.delete(application);
+        log.info("Application deleted with id: {}", id);
     }
 
     @Override
     public JobApplicationResponse updateStatus(Long id, StatusUpdateRequest request) {
+        log.info("Updating status for application id: {} to {}", id, request.getStatus());
         JobApplication application = jobApplicationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Application not found with id: " + id));
 
         String oldStatus = application.getStatus().name();
         application.setStatus(request.getStatus());
         JobApplication updated = jobApplicationRepository.save(application);
+
+        log.info("Status updated for application id: {} from {} to {}", id, oldStatus, request.getStatus());
 
         StatusChangedMessage message = new StatusChangedMessage(
                 updated.getId(),

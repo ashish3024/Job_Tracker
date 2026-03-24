@@ -12,6 +12,7 @@ import com.ashish.jobtracker.repository.UserRepository;
 import com.ashish.jobtracker.security.JwtUtil;
 import com.ashish.jobtracker.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,6 +21,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -30,6 +32,7 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
 
     public LoginResponse login(LoginRequest request) {
+        log.info("Login attempt for email: {}", request.getEmail());
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -38,19 +41,22 @@ public class AuthServiceImpl implements AuthService {
                     )
             );
         } catch (BadCredentialsException e) {
+            log.warn("Failed login attempt for email: {}", request.getEmail());
             throw new InvalidCredentialsException("Invalid email or password");
         }
 
 
         String token = jwtUtil.generateToken(request.getEmail());
-
+        log.info("login successful for email: {}", request.getEmail());
         return new LoginResponse(token);
     }
 
     @Override
     public RegisterResponse register(RegisterRequest request) {
+        log.info("Register attempt for email: {}", request.getEmail());
 
         if (userRepository.existsByEmail(request.getEmail())) {
+            log.warn("Registration failed — email already exists: {}", request.getEmail());
             throw new RuntimeException("Email already registered");
         }
 
@@ -64,7 +70,7 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
 
         String token = jwtUtil.generateToken(user.getEmail());
-
+        log.info("register successful for email: {}", request.getEmail());
         return new RegisterResponse(token);
     }
 }
