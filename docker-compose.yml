@@ -1,0 +1,62 @@
+services:
+
+  mysql:
+    image: mysql:8.0
+    container_name: jobtracker-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: jobtracker
+    ports:
+      - "3307:3306"   # 3307 on host so it doesn't clash with your local MySQL
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - jobtracker-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: jobtracker-rabbitmq
+    ports:
+      - "5673:5672"     # 5673 on host to avoid clash with your running RabbitMQ
+      - "15673:15672"   # dashboard on 15673
+    networks:
+      - jobtracker-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: jobtracker-app
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:mysql://mysql:3306/jobtracker?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+      DB_USERNAME: root
+      DB_PASSWORD: root123
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - jobtracker-network
+
+networks:
+  jobtracker-network:
+    driver: bridge
+
+volumes:
+  mysql_data:

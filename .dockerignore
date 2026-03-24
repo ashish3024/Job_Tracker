@@ -1,0 +1,9 @@
+.git
+.gitignore
+.gradle
+build
+*.md
+__MACOSX
+.DS_Store
+.idea
+*.iml
